@@ -240,7 +240,7 @@
             cursor: pointer; 
             font-size: 20px; 
         }
-              .modal { 
+        .modal { 
             display: none; 
             position: fixed; 
             top: 0; 
@@ -536,27 +536,103 @@
         function renderSkillsList() {
             let html = '';
             skills.forEach((s, i) => {
-                html += `<div class="skill-item-list"><span>${s.name} (${s.level})</span><button onclick="removeSkill(${i})"><i class="fas fa-trash"></i></button></div>`;
+                html += `<div class="skill-item-list"><span><strong>${s.name}</strong> - Seviye ${s.level}</span><button onclick="deleteSkill(${i})"><i class="fas fa-trash"></i></button></div>`;
             });
             document.getElementById('skillsList').innerHTML = html;
         }
-        function removeSkill(i) {
+        window.deleteSkill = function(i) {
             skills.splice(i, 1);
+            renderSkills();
             renderSkillsList();
+        };
+        function renderMessages() {
+            const box = document.getElementById('chatMessages');
+            box.innerHTML = '';
+            messages.forEach(m => {
+                box.innerHTML += `<div class="message"><div class="message-name">${m.name}</div><div>${m.text}</div></div>`;
+            });
+            document.getElementById('messageCount').innerText = messages.length;
         }
-        
-        // Rastgele Söz Seçimi
-        const rIndex = Math.floor(Math.random() * sozler.length);
-        document.getElementById('quoteText').innerText = `"${sozler[rIndex]}"`;
-        document.getElementById('quoteAuthor').innerText = "- Mustafa Kemal Atatürk";
+        function sendMessage() {
+            const inp = document.getElementById('messageInput');
+            const txt = inp.value.trim();
+            if (!txt) return;
+            messages.push({ name: "Ziyaretçi", text: txt });
+            renderMessages();
+            inp.value = '';
+        }
+        function updateUI() {
+            document.getElementById('siteName').innerText = settings.name;
+            document.getElementById('siteSubtitle').innerText = settings.subtitle;
+            document.getElementById('about').innerText = settings.about;
+            document.getElementById('rank').innerText = settings.rank;
+            document.getElementById('instagramLink').href = social.instagram;
+            document.getElementById('telegramLink').href = social.telegram;
+            document.getElementById('whatsappLink').href = social.whatsapp;
+        }
+        function setTodayQuote() {
+            const d = new Date().getDate();
+            document.getElementById('quoteText').innerText = sozler[d % sozler.length];
+            document.getElementById('quoteAuthor').innerText = "Mustafa Kemal Atatürk";
+        }
 
-        updateClock();
-        updateDate();
-        updateVisit();
-        renderSkills();
-        setInterval(updateClock, 1000);
+        document.getElementById('adminBtn').onclick = () => document.getElementById('loginModal').classList.add('show');
+        document.getElementById('closeModalBtn').onclick = () => document.getElementById('loginModal').classList.remove('show');
+        document.getElementById('loginBtn').onclick = () => {
+            const u = document.getElementById('username').value;
+            const p = document.getElementById('password').value;
+            if (u === 'Admin0163' && p === 'Admin0163') {
+                document.getElementById('loginModal').classList.remove('show');
+                document.getElementById('adminPanel').classList.add('show');
+                document.getElementById('editName').value = settings.name;
+                document.getElementById('editSubtitle').value = settings.subtitle;
+                document.getElementById('editAbout').value = settings.about;
+                document.getElementById('rankSelect').value = settings.rank;
+                document.getElementById('editInstagram').value = social.instagram;
+                document.getElementById('editTelegram').value = social.telegram;
+                document.getElementById('editWhatsapp').value = social.whatsapp;
+                renderSkillsList();
+            } else alert('❌ Hatalı giriş');
+        };
+        document.getElementById('closeAdminBtn').onclick = () => document.getElementById('adminPanel').classList.remove('show');
+        document.getElementById('saveBtn').onclick = () => {
+            settings.name = document.getElementById('editName').value || settings.name;
+            settings.subtitle = document.getElementById('editSubtitle').value || settings.subtitle;
+            settings.about = document.getElementById('editAbout').value || settings.about;
+            settings.rank = document.getElementById('rankSelect').value;
+            social.instagram = document.getElementById('editInstagram').value || '#';
+            social.telegram = document.getElementById('editTelegram').value || '#';
+            social.whatsapp = document.getElementById('editWhatsapp').value || '#';
+            updateUI();
+            alert('✅ Kaydedildi');
+            document.getElementById('adminPanel').classList.remove('show');
+        };
+        document.getElementById('sendBtn').onclick = sendMessage;
+        document.getElementById('addSkillBtn').onclick = () => {
+            const name = document.getElementById('newSkillName').value.trim();
+            const level = parseInt(document.getElementById('newSkillLevel').value);
+            if (!name || !level) { alert('Lütfen tüm alanları doldurun!'); return; }
+            if (level < 1 || level > 100) { alert('Seviye 1-100 arasında olmalı!'); return; }
+            skills.push({ name, level });
+            document.getElementById('newSkillName').value = '';
+            document.getElementById('newSkillLevel').value = '';
+            renderSkills();
+            renderSkillsList();
+        };
 
-        // MODAL VE PANEL KONTROLLERİ BURADAN SONRA DEVAM EDER
+        document.addEventListener('DOMContentLoaded', () => {
+            updateClock();
+            updateDate();
+            updateVisit();
+            renderSkills();
+            renderMessages();
+            updateUI();
+            setTodayQuote();
+            setInterval(updateClock, 1000);
+            setInterval(updateDate, 1000);
+        });
+
+        window.onclick = e => { if (e.target.classList.contains('modal')) e.target.classList.remove('show'); };
     </script>
 </body>
 </html>
